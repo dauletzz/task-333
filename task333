@@ -1,0 +1,116 @@
+abstract class MediaItem {
+  String id;
+  String title;
+  double price;
+  
+  MediaItem(this.id, this.title, this.price);
+  
+  String getDetails();
+}
+ 
+class Audiobook extends MediaItem with Downloadable {
+  double durationHours;
+  String narrator;
+  
+  Audiobook({
+    required String id,
+    required String title,
+    required double price,
+    required this.durationHours,
+    required this.narrator,
+  }) : super(id, title, price);
+  
+  @override
+  String getDetails() {
+    return 'Audiobook: $title by $narrator (${durationHours}h) - \$$price';
+  }
+}
+ 
+class EBook extends MediaItem with Downloadable {
+  double fileSizeMB;
+  String author;
+  
+  EBook({
+    required String id,
+    required String title,
+    required double price,
+    required this.fileSizeMB,
+    required this.author,
+  }) : super(id, title, price);
+  
+  @override
+  String getDetails() {
+    return 'EBook: $title by $author (${fileSizeMB}MB) - \$$price';
+  }
+}
+ 
+mixin Downloadable {
+  void download(String title) {
+    print('Downloading: $title...');
+  }
+}
+ 
+class ShoppingCart {
+  final List<MediaItem> _items = [];
+  
+  void addItem(MediaItem item) {
+    _items.add(item);
+  }
+  
+  double calculateTotalWithTax({double taxRate = 0.12}) {
+    double subtotal = _items.fold(0.0, (sum, item) => sum + item.price);
+    return subtotal + (subtotal * taxRate);
+  }
+  
+  List<MediaItem> filterByMaxPrice(double maxPrice) {
+    return _items.where((item) => item.price <= maxPrice).toList();
+  }
+  
+  void printReceipt() {
+    print('=== Receipt ===');
+    for (var item in _items) {
+      print(item.getDetails());
+      if (item is Downloadable) {
+        (item as Downloadable).download(item.title);
+      }
+    }
+    print('Total with tax: \$${calculateTotalWithTax().toStringAsFixed(2)}');
+    print('===============');
+  }
+}
+ 
+void main() {
+  var cart = ShoppingCart();
+  
+  var audiobook = Audiobook(
+    id: '1',
+    title: 'The Great Gatsby',
+    price: 9.99,
+    durationHours: 5.5,
+    narrator: 'Jake Chrisawn',
+  );
+  
+  var ebook = EBook(
+    id: '2',
+    title: '1984',
+    price: 7.99,
+    fileSizeMB: 2.5,
+    author: 'George Orwell',
+  );
+  
+  cart.addItem(audiobook);
+  cart.addItem(ebook);
+  
+  print('Items in cart:');
+  for (var item in cart._items) {
+    print(item.getDetails());
+  }
+  
+  print('\nFiltered items (max price \$8.50):');
+  for (var item in cart.filterByMaxPrice(8.50)) {
+    print(item.getDetails());
+  }
+  
+  print('\n');
+  cart.printReceipt();
+}
